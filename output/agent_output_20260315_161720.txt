@@ -17,7 +17,7 @@ Showing first 5 jobs:
 STEP 2: LLM Decision for Filtering
 {
   "next_tool": "filtering",
-  "reason": "The candidate has a preferred location and only 2 years of experience, so it's necessary to filter out jobs that don't match these criteria.",
+  "reason": "The candidate has specified a preferred location (San Francisco) and the job dataset contains multiple roles with varying locations. Filtering by location is necessary to ensure that only relevant jobs are considered.",
   "important_rules": [
     "location",
     "experience",
@@ -56,9 +56,10 @@ Filtered jobs:
 STEP 4: LLM Decision for Ranking
 {
   "next_tool": "ranking",
-  "reason": "All jobs are from the same company, and filtering by experience is not possible. Ranking will help prioritize job titles based on relevance to candidate's skills and location.",
+  "reason": "The candidate has applied for a specific location (San Francisco) and has 2 years of experience, making ranking a relevant tool to narrow down the job list.",
   "ranking_focus": [
     "skills",
+    "experience",
     "location",
     "title relevance"
   ]
@@ -122,11 +123,11 @@ STEP 6: Top 3 Jobs
 STEP 7: LLM Justification for Top Job
 {
   "next_tool": "resume_tailoring",
-  "reason": "Top-ranked job has the most relevant skills and highest total score, making it a strong match for the candidate.",
+  "reason": "The top-ranked job is the most relevant to the candidate's skills and experience, making it a good opportunity for resume tailoring.",
   "why_top_job_wins": [
-    "Rank 1 has the most matched skills (machine learning, python, sql) among all three jobs, aligning well with the candidate's skill set",
-    "Rank 1 has the highest total score (78), indicating a stronger job fit compared to rank 2 and 3",
-    "The location of rank 1 is not excluded by the candidate, making it a feasible option"
+    "The top-ranked job has the highest total score (78), indicating a strong match with the candidate's skills and experience.",
+    "Rank 2 job has a lower total score (75) compared to rank 1, making it less relevant for resume tailoring.",
+    "Rank 3 job has an even lower total score (68) and lacks specific matches in 'machine learning' skill, making it the least relevant for resume tailoring."
   ]
 }
 Decision mode used: ollama
@@ -150,13 +151,13 @@ STEP 9: Resume Tailoring Tool Output
 Tailoring mode used: ollama
 
 Tailored Professional Summary:
-Highly motivated Applied AI Engineer with experience in machine learning, Python, and SQL. Skilled in building data-driven solutions and applying statistical and analytical methods to solve real-world problems.
+Experienced data science professional with a strong foundation in machine learning, Python, and SQL. Proven ability to build scalable AI solutions and drive business growth.
 
 Modified Experience Bullet 1:
-- Built scalable machine learning models using Python and SQL for data analysis and visualization.
+- Designed and developed machine learning models using Python and SQL for real-world applications.
 
 Modified Experience Bullet 2:
-- Collaborated on software development projects, utilizing machine learning algorithms to drive business decisions.
+- Utilized data visualization tools to effectively communicate technical insights and drive business decisions.
 
 Aligned Skills:
 Python, SQL, Machine Learning
