@@ -1,13 +1,14 @@
 import os
 import json
-import textwrap
 import requests
 from datetime import datetime
+from dotenv import load_dotenv
 from reportlab.lib.pagesizes import LETTER
 from reportlab.pdfgen import canvas
 
 from candidate_profile import CANDIDATE_PROFILE, BASE_RESUME
 from tools import load_jobs, filter_jobs, rank_jobs, tailor_resume
+from build_jobs_csv import main as build_jobs_main
 from prompts import (
     SYSTEM_PROMPT,
     TAILORING_SYSTEM_PROMPT,
@@ -17,9 +18,10 @@ from prompts import (
     build_resume_tailoring_prompt
 )
 
+load_dotenv()
 
-OLLAMA_URL = "http://localhost:11434/api/chat"
-OLLAMA_MODEL = "llama3"
+OLLAMA_URL = os.getenv("OLLAMA_URL", "http://localhost:11434/api/chat")
+OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "llama3")
 
 
 def safe_json_load(text):
@@ -82,7 +84,6 @@ def call_ollama_json(system_prompt, user_prompt):
     if parsed is not None:
         return parsed
 
-    # try extracting JSON block
     start = text.find("{")
     end = text.rfind("}")
     if start != -1 and end != -1 and end > start:
@@ -233,7 +234,7 @@ def save_pdf(content, path):
             c.drawString(left_margin, y, line)
             y -= line_height
 
-        y -= 4  # extra spacing between blocks
+        y -= 4
 
     c.setFont("Helvetica", 9)
     c.drawRightString(width - 50, 30, f"Page {page_num}")
@@ -301,7 +302,16 @@ def main():
 
         append_line(output_lines, "\n========== AI AGENT FOR JOB SEARCH & RESUME OPTIMIZATION ==========\n")
 
-        # STEP 1
+        # STEP 0 - refresh jobs.csv by calling scraper
+        append_line(output_lines, "STEP 0: Refreshing jobs.csv")
+        try:
+            build_jobs_main()
+            append_line(output_lines, "jobs.csv refreshed successfully.\n")
+        except Exception as scrape_error:
+            append_line(output_lines, f"[WARNING] Could not refresh jobs.csv: {scrape_error}")
+            append_line(output_lines, "Continuing with existing jobs.csv file.\n")
+
+        # STEP 1 - load dataset
         jobs_df = load_jobs("data/jobs.csv")
         append_line(output_lines, "STEP 1: Dataset Preview")
         append_line(output_lines, f"Total jobs loaded: {len(jobs_df)}")
@@ -414,9 +424,10 @@ def main():
         append_line(output_lines, "\nSTEP 10: Final Reasoning Trace")
         append_line(
             output_lines,
-            f"The agent loaded {len(jobs_df)} jobs, filtered them using location, experience, company exclusion, "
-            f"and seniority-title rules, ranked the remaining roles using skill match, experience alignment, "
-            f"location fit, title relevance, and description keyword relevance, selected the highest-scoring job, "
+            f"The agent loaded {len(jobs_df)} jobs, refreshed the dataset before execution, "
+            f"filtered them using location, experience, company exclusion, and seniority-title rules, "
+            f"ranked the remaining roles using skill match, experience alignment, location fit, "
+            f"title relevance, and description keyword relevance, selected the highest-scoring job, "
             f"and tailored the resume only for that top-ranked role."
         )
 
